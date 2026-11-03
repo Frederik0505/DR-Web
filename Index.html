@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id = "app">
+    <h1>Plader</h1>
+    <table id = "recordsTable">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Artist</th>
+                <th>Duration</th>
+                <th>Year</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="record in records" :key="record.id">
+                <td>{{ record.id }}</td>
+                <td>{{ record.title }}</td>
+                <td>{{ record.artist }}</td>
+                <td>{{ record.duration }}</td>
+                <td>{{ record.publicationYear }}</td>
+            </tr>
+    </table>
+  </div>
+  <script src="App.js"></script>
+</body>
+</html>
