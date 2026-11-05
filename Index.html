@@ -6,7 +6,7 @@
     <title>DR Music Records</title>
 
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/axios@1.7.9/dist/axios.min.js"></script>
 </head>
 
 <body>
@@ -15,7 +15,38 @@
 
     <p>{{ message }}</p>
 
-    <table id="recordsTable" border="1">
+    
+  <div id = "app">
+  <h1>Søg plader</h1>
+  <input id="searchTitle" v-model="searchTitle" placeholder="Titel" @keyup.enter="search" />
+  <input id="searchArtist" v-model="searchArtist" placeholder="Kunstner" @keyup.enter="search" />
+  <button id="searchButton" @click="search">Søg</button>
+  <button id="clearButton" @click="clearSearch">Ryd</button>
+  <p id="noRecordsMessage" v-if="records.length === 0 && searched">Ingen plader fundet</p>
+
+ 
+    <h1>Plader</h1>
+      <h2>Tilføj en plade</h2>
+
+      <form @submit.prevent="addRecord">
+          <label>Titel:</label>
+          <input type="text" v-model="newRecord.title" required>
+
+          <label>Kunstner:</label>
+          <input type="text" v-model="newRecord.artist" required>
+
+          <label>Varighed (sekunder):</label>
+          <input type="number" v-model.number="newRecord.duration" min="1" required>
+
+          <label>Udgivelsesår:</label>
+          <input type="number" v-model.number="newRecord.publicationYear" min="1900" required>
+
+          <button type="submit">Tilføj plade</button>
+      </form>
+
+      <p>{{ message }}</p>
+      
+    <table id = "recordsTable">
         <thead>
         <tr>
             <th>Id</th>
