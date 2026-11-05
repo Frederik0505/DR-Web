@@ -10,7 +10,17 @@ Vue.createApp({
             loading: false,
             saving: false,
             errorMessage: "",
-            successMessage: ""
+            successMessage: "",
+            searchTitle: "",
+            searchArtist: "",
+            searched: false,
+            newRecord: {
+                title: "",
+                artist: "",
+                duration: 1,
+                publicationYear: new Date().getFullYear()
+            },
+            message: "",
         };
     },
     computed: {
@@ -18,9 +28,11 @@ Vue.createApp({
             return !!this.token && this.role === "Administrator";
         }
     },
+
     mounted() {
         this.getAllRecords();
     },
+
     methods: {
         apiUrl(path) {
             const base = (window.DR_API_BASE_URL || "http://localhost:5102").replace(/\/$/, "");
@@ -41,7 +53,18 @@ Vue.createApp({
             return `API-fejl (${error.response.status}).`;
         },
         async getAllRecords() {
-            this.loading = true;
+            try {
+                const response = await axios.get(
+                    "http://localhost:5102/api/MusicRecords"
+                );
+
+                this.records = response.data;
+            } catch (error) {
+                console.error("Fejl ved hentning af plader:", error);
+                this.message = "Kunne ikke hente plader.";
+            }
+        },
+        async search(){
             try {
                 const response = await axios.get(this.apiUrl("/api/musicrecords"));
                 this.records = response.data;
