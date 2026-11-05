@@ -1,11 +1,25 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/axios@1.7.9/dist/axios.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DR – Musikplader</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 35px auto; padding: 0 16px; color: #222; }
+        table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+        th, td { border: 1px solid #ccc; padding: 9px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        button { padding: 7px 12px; cursor: pointer; margin-right: 6px; }
+        input { padding: 7px; max-width: 100%; box-sizing: border-box; }
+        .login-box, .edit-box { border: 1px solid #ddd; padding: 16px; margin: 16px 0; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+        label { display: flex; flex-direction: column; gap: 5px; }
+        .error { color: #a40000; }
+        .success { color: #21652d; }
+    </style>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js"></script>
+    <script src="config.js"></script>
 </head>
 <body>
   <div id="app">
