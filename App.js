@@ -2,27 +2,40 @@ const baseUrl = "http://localhost:5102/api/MusicRecords";
 Vue.createApp({
     data() {
         return {
-            records: [], 
+            records: [],
             searchTitle: "",
             searchArtist: "",
             searched: false
+            newRecord: {
+                title: "",
+                artist: "",
+                duration: 1,
+                publicationYear: new Date().getFullYear()
+            },
+            message: ""
         };
     },
     created(){
         this.search();
     },
+
     mounted() {
         this.getAllRecords();
     },
-    methods: {
-        getAllRecords() {
-            this.records = [
-                { id: 1, title: "Abbey Road", artist: "The Beatles", duration: 2832, publicationYear: 1969 },
-                { id: 2, title: "Thriller", artist: "Michael Jackson", duration: 2537, publicationYear: 1982 },
-                { id: 3, title: "Rumours", artist: "Fleetwood Mac", duration: 2400, publicationYear: 1977 }
-            ];
-        },
 
+    methods: {
+        async getAllRecords() {
+            try {
+                const response = await axios.get(
+                    "http://localhost:5102/api/MusicRecords"
+                );
+
+                this.records = response.data;
+
+            } catch (error) {
+                this.message = "Kunne ikke hente pladerne.";
+            }
+        },
         async search(){
             try {
             const params = {};
@@ -44,5 +57,34 @@ Vue.createApp({
             this.searchArtist = "";
             this.search();
             }
+
+        async addRecord() {
+            this.message = "";
+
+            try {
+                const response = await axios.post(
+                    "http://localhost:5102/api/MusicRecords",
+                    this.newRecord
+                );
+
+                this.message = "Pladen er tilføjet!";
+
+                await this.getAllRecords();
+
+                this.newRecord = {
+                    title: "",
+                    artist: "",
+                    duration: 1,
+                    publicationYear: new Date().getFullYear()
+                };
+
+            } catch (error) {
+                if (error.response) {
+                    this.message = "Pladen kunne ikke tilføjes.";
+                } else {
+                    this.message = "Der kunne ikke oprettes forbindelse til serveren.";
+                }
+            }
+        }
     }
 }).mount("#app");

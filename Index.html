@@ -18,6 +18,26 @@
 
  
     <h1>Plader</h1>
+      <h2>Tilføj en plade</h2>
+
+      <form @submit.prevent="addRecord">
+          <label>Titel:</label>
+          <input type="text" v-model="newRecord.title" required>
+
+          <label>Kunstner:</label>
+          <input type="text" v-model="newRecord.artist" required>
+
+          <label>Varighed (sekunder):</label>
+          <input type="number" v-model.number="newRecord.duration" min="1" required>
+
+          <label>Udgivelsesår:</label>
+          <input type="number" v-model.number="newRecord.publicationYear" min="1900" required>
+
+          <button type="submit">Tilføj plade</button>
+      </form>
+
+      <p>{{ message }}</p>
+      
     <table id = "recordsTable">
         <thead>
             <tr>
