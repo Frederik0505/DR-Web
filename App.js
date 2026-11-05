@@ -31,9 +31,9 @@ Vue.createApp({
                 );
 
                 this.records = response.data;
-
             } catch (error) {
-                this.message = "Kunne ikke hente pladerne.";
+                console.error("Fejl ved hentning af plader:", error);
+                this.message = "Kunne ikke hente plader.";
             }
         },
         async search(){
@@ -84,6 +84,27 @@ Vue.createApp({
                 } else {
                     this.message = "Der kunne ikke oprettes forbindelse til serveren.";
                 }
+
+        async deleteRecord(id) {
+            const confirmed = confirm(
+                "Er du sikker på, at du vil slette denne plade?"
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                await axios.delete(
+                    "http://localhost:5102/api/MusicRecords/" + id
+                );
+
+                this.message = "Pladen er slettet.";
+                await this.getAllRecords();
+
+            } catch (error) {
+                console.error("Fejl ved sletning:", error);
+                this.message = "Kunne ikke slette pladen.";
             }
         }
     }
