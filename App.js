@@ -1,10 +1,17 @@
+axios.defaults.baseURL = window.DR_API_BASE_URL;
+
+const savedToken = sessionStorage.getItem("drJwt");
+if (savedToken) axios.defaults.headers.common.Authorization = `Bearer ${savedToken}`;
+
+const emptyRecord = () => ({ title: "", artist: "", duration: 1, publicationYear: new Date().getFullYear() });
+
 Vue.createApp({
     data() {
         return {
             records: [],
             loginForm: { username: "", password: "" },
-            token: sessionStorage.getItem("drJwt") || "",
-            role: sessionStorage.getItem("drRole") || "",
+            token: savedToken || "",
+            isAdmin: sessionStorage.getItem("drIsAdmin") === "true",
             username: sessionStorage.getItem("drUsername") || "",
             editingRecord: null,
             loading: false,
@@ -14,95 +21,103 @@ Vue.createApp({
             searchTitle: "",
             searchArtist: "",
             searched: false,
-            newRecord: {
-                title: "",
-                artist: "",
-                duration: 1,
-                publicationYear: new Date().getFullYear()
-            },
-            message: "",
+            newRecord: emptyRecord()
         };
-    },
-    computed: {
-        isAdministrator() {
-            return !!this.token && this.role === "Administrator";
-        }
     },
 
     mounted() {
-        this.getAllRecords();
+        this.getRecords();
     },
 
     methods: {
-        apiUrl(path) {
-            const base = (window.DR_API_BASE_URL || "http://localhost:5102").replace(/\/$/, "");
-            return `${base}${path}`;
-        },
         clearMessages() {
             this.errorMessage = "";
             this.successMessage = "";
         },
         errorText(error) {
-            if (!error.response) return "Kunne ikke kontakte API'et. Kontrollér backend, CORS og URL i config.js.";
-            const data = error.response.data;
-            if (data?.message) return data.message;
-            if (data?.errors) return Object.values(data.errors).flat().join(" ");
-            if (error.response.status === 401) return "Ikke logget ind, eller token er udløbet.";
-            if (error.response.status === 403) return "Du har ikke administratorrettigheder.";
-            if (error.response.status === 404) return "Pladen findes ikke længere.";
-            return `API-fejl (${error.response.status}).`;
+            if (!error.response) return "Kunne ikke kontakte API'et.";
+            if (typeof error.response.data === "string") return error.response.data;
+            return `Fejl (${error.response.status})`;
         },
-        async getAllRecords() {
+        async getRecords() {
+            this.loading = true;
             try {
-                const response = await axios.get(
-                    "http://localhost:5102/api/MusicRecords"
-                );
-
+                // Empty search fields are left out by axios, so this also gets all records.
+                const params = { title: this.searchTitle || undefined, artist: this.searchArtist || undefined };
+                const response = await axios.get("/api/musicrecords", { params });
                 this.records = response.data;
             } catch (error) {
-                console.error("Fejl ved hentning af plader:", error);
-                this.message = "Kunne ikke hente plader.";
-            }
-        },
-        async search(){
-            try {
-                const response = await axios.get(this.apiUrl("/api/musicrecords"));
-                this.records = response.data;
-            } catch (error) {
+                this.records = [];
                 this.errorMessage = this.errorText(error);
             } finally {
                 this.loading = false;
             }
         },
-        async login() {
+        search() {
+            this.clearMessages();
+            this.searched = true;
+            this.getRecords();
+        },
+        clearSearch() {
+            this.searchTitle = "";
+            this.searchArtist = "";
+            this.searched = false;
+            this.getRecords();
+        },
+        async addRecord() {
             this.clearMessages();
             try {
-                const response = await axios.post(this.apiUrl("/api/auth/login"), this.loginForm);
-                this.token = response.data.token;
-                this.role = response.data.roles.includes("Administrator") ? "Administrator" : "User";
-                this.username = response.data.username;
-                sessionStorage.setItem("drJwt", this.token);
-                sessionStorage.setItem("drRole", this.role);
-                sessionStorage.setItem("drUsername", this.username);
-                this.loginForm.password = "";
-                this.successMessage = "Du er logget ind.";
+                await axios.post("/api/musicrecords", this.newRecord);
+                this.newRecord = emptyRecord();
+                this.successMessage = "Pladen er tilføjet!";
+                await this.getRecords();
             } catch (error) {
                 this.errorMessage = this.errorText(error);
             }
         },
+        async deleteRecord(id) {
+            if (!confirm("Er du sikker på, at du vil slette denne plade?")) return;
+            this.clearMessages();
+            try {
+                await axios.delete(`/api/musicrecords/${id}`);
+                this.successMessage = "Pladen er slettet.";
+                await this.getRecords();
+            } catch (error) {
+                this.errorMessage = this.errorText(error);
+            }
+        },
+        async login() {
+            this.clearMessages();
+            try {
+                const response = await axios.post("/api/auth/login", this.loginForm);
+                this.token = response.data.token;
+                axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
+                // Login only returns the token; ask the API who we are.
+                const me = await axios.get("/api/auth/me");
+                this.isAdmin = me.data.roles.includes("Administrator");
+                this.username = me.data.username;
+                sessionStorage.setItem("drJwt", this.token);
+                sessionStorage.setItem("drIsAdmin", this.isAdmin);
+                sessionStorage.setItem("drUsername", this.username);
+                this.loginForm.password = "";
+                this.successMessage = "Du er logget ind.";
+            } catch (error) {
+                this.token = "";
+                delete axios.defaults.headers.common.Authorization;
+                this.errorMessage = this.errorText(error);
+            }
+        },
         logout() {
-            sessionStorage.removeItem("drJwt");
-            sessionStorage.removeItem("drRole");
-            sessionStorage.removeItem("drUsername");
+            sessionStorage.clear();
+            delete axios.defaults.headers.common.Authorization;
             this.token = "";
-            this.role = "";
+            this.isAdmin = false;
             this.username = "";
             this.editingRecord = null;
             this.clearMessages();
             this.successMessage = "Du er logget ud.";
         },
         startEdit(record) {
-            if (!this.isAdministrator) return;
             this.clearMessages();
             this.editingRecord = { ...record }; // Copy: don't alter table before PUT succeeds.
         },
@@ -110,24 +125,14 @@ Vue.createApp({
             this.editingRecord = null;
         },
         async saveEdit() {
-            if (!this.isAdministrator || !this.editingRecord || this.saving) return;
             this.clearMessages();
             this.saving = true;
-            const changed = { ...this.editingRecord };
             try {
-                await axios.put(
-                    this.apiUrl(`/api/musicrecords/${changed.id}`),
-                    changed,
-                    { headers: { Authorization: `Bearer ${this.token}` } }
-                );
+                await axios.put(`/api/musicrecords/${this.editingRecord.id}`, this.editingRecord);
                 this.editingRecord = null;
-                await this.getAllRecords();
-                if (!this.errorMessage) this.successMessage = "Pladen er opdateret i listen.";
+                this.successMessage = "Pladen er opdateret i listen.";
+                await this.getRecords();
             } catch (error) {
-                const status = error.response?.status;
-                if (status === 401 || status === 403) {
-                    this.logout();
-                }
                 this.errorMessage = this.errorText(error);
             } finally {
                 this.saving = false;
