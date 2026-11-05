@@ -5,16 +5,16 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Document</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios@1.7.9/dist/axios.min.js"></script>
 </head>
 <body>
   <div id = "app">
   <h1>Søg plader</h1>
-  <input v-model="searchTitle" placeholder="Titel" @keyup.enter="search" />
-  <input v-model="searchArtist" placeholder="Kunstner" @keyup.enter="search" />
-  <button @click="search">Søg</button>
-  <button @click="clearSearch">Ryd</button>
-
-  <p v-if="records.length === 0 && searched">Ingen plader fundet</p>
+  <input id="searchTitle" v-model="searchTitle" placeholder="Titel" @keyup.enter="search" />
+  <input id="searchArtist" v-model="searchArtist" placeholder="Kunstner" @keyup.enter="search" />
+  <button id="searchButton" @click="search">Søg</button>
+  <button id="clearButton" @click="clearSearch">Ryd</button>
+  <p id="noRecordsMessage" v-if="records.length === 0 && searched">Ingen plader fundet</p>
 
  
     <h1>Plader</h1>

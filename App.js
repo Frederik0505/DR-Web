@@ -1,4 +1,4 @@
-const baseUrl = "https://localhost:5001/api/records";
+const baseUrl = "http://localhost:5102/api/MusicRecords";
 Vue.createApp({
     data() {
         return {
@@ -42,7 +42,7 @@ Vue.createApp({
         clearSearch() {
             this.searchTitle = "";
             this.searchArtist = "";
-            this.searched();
+            this.search();
             }
     }
 }).mount("#app");
