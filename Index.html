@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="da">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,35 +8,63 @@
     <script src="https://unpkg.com/axios@1.7.9/dist/axios.min.js"></script>
 </head>
 <body>
-  <div id = "app">
-  <h1>Søg plader</h1>
-  <input id="searchTitle" v-model="searchTitle" placeholder="Titel" @keyup.enter="search" />
-  <input id="searchArtist" v-model="searchArtist" placeholder="Kunstner" @keyup.enter="search" />
-  <button id="searchButton" @click="search">Søg</button>
-  <button id="clearButton" @click="clearSearch">Ryd</button>
-  <p id="noRecordsMessage" v-if="records.length === 0 && searched">Ingen plader fundet</p>
+  <div id="app">
+    <h1>DR – Musikplader</h1>
 
- 
-    <h1>Plader</h1>
-    <table id = "recordsTable">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Artist</th>
-                <th>Duration</th>
-                <th>Year</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="record in records" :key="record.id">
-                <td>{{ record.id }}</td>
-                <td>{{ record.title }}</td>
-                <td>{{ record.artist }}</td>
-                <td>{{ record.duration }}</td>
-                <td>{{ record.publicationYear }}</td>
-            </tr>
+    <section class="login-box" aria-label="Log ind">
+      <template v-if="!token">
+        <h2>Administrator-login</h2>
+        <form id="loginForm" @submit.prevent="login">
+          <div class="form-row">
+            <label>Brugernavn <input id="usernameInput" v-model.trim="loginForm.username" required autocomplete="username"></label>
+            <label>Adgangskode <input id="passwordInput" v-model="loginForm.password" required type="password" autocomplete="current-password"></label>
+          </div>
+          <button id="loginButton" type="submit">Log ind</button>
+        </form>
+      </template>
+      <template v-else>
+        <p>Logget ind som <strong id="loggedInUser">{{ username }}</strong> ({{ role }}).</p>
+        <button id="logoutButton" @click="logout">Log ud</button>
+      </template>
+    </section>
+
+    <p v-if="errorMessage" id="errorMessage" class="error" role="alert">{{ errorMessage }}</p>
+    <p v-if="successMessage" id="successMessage" class="success" role="status">{{ successMessage }}</p>
+
+    <h2>Pladesamling</h2>
+    <p v-if="loading">Henter plader...</p>
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th>Id</th><th>Titel</th><th>Kunstner</th><th>Varighed (sek.)</th><th>År</th>
+          <th v-if="isAdministrator">Handling</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="record in records" :key="record.id">
+          <td>{{ record.id }}</td>
+          <td>{{ record.title }}</td>
+          <td>{{ record.artist }}</td>
+          <td>{{ record.duration }}</td>
+          <td>{{ record.publicationYear }}</td>
+          <td v-if="isAdministrator"><button class="editButton" :data-record-id="record.id" @click="startEdit(record)">Ret</button></td>
+        </tr>
+      </tbody>
     </table>
+
+    <section v-if="editingRecord && isAdministrator" id="editFormSection" class="edit-box">
+      <h2>Ret plade #{{ editingRecord.id }}</h2>
+      <form id="editForm" @submit.prevent="saveEdit">
+        <div class="form-row">
+          <label>Titel <input id="editTitle" v-model="editingRecord.title" required maxlength="200"></label>
+          <label>Kunstner <input id="editArtist" v-model="editingRecord.artist" required maxlength="200"></label>
+          <label>Varighed (sek.) <input id="editDuration" v-model.number="editingRecord.duration" type="number" required min="1"></label>
+          <label>Udgivelsesår <input id="editPublicationYear" v-model.number="editingRecord.publicationYear" type="number" required min="1877"></label>
+        </div>
+        <button id="saveEditButton" type="submit" :disabled="saving">{{ saving ? 'Gemmer...' : 'Gem ændringer' }}</button>
+        <button id="cancelEditButton" type="button" @click="cancelEdit">Annuller</button>
+      </form>
+    </section>
   </div>
   <script src="App.js"></script>
 </body>
