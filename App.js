@@ -1,8 +1,15 @@
+const baseUrl = "http://localhost:5102/api/MusicRecords";
 Vue.createApp({
     data() {
         return {
-            records: []
+            records: [], 
+            searchTitle: "",
+            searchArtist: "",
+            searched: false
         };
+    },
+    created(){
+        this.search();
     },
     mounted() {
         this.getAllRecords();
@@ -14,6 +21,28 @@ Vue.createApp({
                 { id: 2, title: "Thriller", artist: "Michael Jackson", duration: 2537, publicationYear: 1982 },
                 { id: 3, title: "Rumours", artist: "Fleetwood Mac", duration: 2400, publicationYear: 1977 }
             ];
-        }
+        },
+
+        async search(){
+            try {
+            const params = {};
+            if (this.searchTitle) params.Title = this.searchTitle;
+            if (this.searchArtist) params.Artist = this.searchArtist;
+            const response = await axios.get(baseUrl, { params });
+            this.records = response.data ?? [];
+            }
+            catch (error) {
+                console.error(error);
+                this.records = [];
+            }
+            finally {
+                this.searched = true;
+            }
+        },
+        clearSearch() {
+            this.searchTitle = "";
+            this.searchArtist = "";
+            this.search();
+            }
     }
 }).mount("#app");
