@@ -1,34 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="da">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DR Music Records</title>
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
+
 <body>
-  <div id = "app">
+<div id="app">
     <h1>Plader</h1>
-    <table id = "recordsTable">
+
+    <p>{{ message }}</p>
+
+    <table id="recordsTable" border="1">
         <thead>
-            <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Artist</th>
-                <th>Duration</th>
-                <th>Year</th>
-            </tr>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Artist</th>
+            <th>Duration</th>
+            <th>Year</th>
+            <th>Handling</th>
+        </tr>
         </thead>
+
         <tbody>
-            <tr v-for="record in records" :key="record.id">
-                <td>{{ record.id }}</td>
-                <td>{{ record.title }}</td>
-                <td>{{ record.artist }}</td>
-                <td>{{ record.duration }}</td>
-                <td>{{ record.publicationYear }}</td>
-            </tr>
+        <tr v-for="record in records" :key="record.id">
+            <td>{{ record.id }}</td>
+            <td>{{ record.title }}</td>
+            <td>{{ record.artist }}</td>
+            <td>{{ record.duration }}</td>
+            <td>{{ record.publicationYear }}</td>
+            <td>
+                <button
+                        type="button"
+                        :data-record-id="record.id"
+                        @click="deleteRecord(record.id)">
+                    Slet
+                </button>
+            </td>
+        </tr>
+        </tbody>
     </table>
-  </div>
-  <script src="App.js"></script>
+</div>
+
+<script src="App.js"></script>
 </body>
 </html>
