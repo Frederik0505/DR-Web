@@ -1,17 +1,22 @@
+const baseUrl = "http://localhost:5102/api/MusicRecords";
 Vue.createApp({
     data() {
         return {
             records: [],
-
+            searchTitle: "",
+            searchArtist: "",
+            searched: false
             newRecord: {
                 title: "",
                 artist: "",
                 duration: 1,
                 publicationYear: new Date().getFullYear()
             },
-
             message: ""
         };
+    },
+    created(){
+        this.search();
     },
 
     mounted() {
@@ -31,6 +36,27 @@ Vue.createApp({
                 this.message = "Kunne ikke hente pladerne.";
             }
         },
+        async search(){
+            try {
+            const params = {};
+            if (this.searchTitle) params.Title = this.searchTitle;
+            if (this.searchArtist) params.Artist = this.searchArtist;
+            const response = await axios.get(baseUrl, { params });
+            this.records = response.data ?? [];
+            }
+            catch (error) {
+                console.error(error);
+                this.records = [];
+            }
+            finally {
+                this.searched = true;
+            }
+        },
+        clearSearch() {
+            this.searchTitle = "";
+            this.searchArtist = "";
+            this.search();
+            }
 
         async addRecord() {
             this.message = "";
